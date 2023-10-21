@@ -3,6 +3,7 @@ from random import sample
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.views.decorators.cache import cache_page
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -12,10 +13,11 @@ from client.forms import ClientForm, MailingForm, MessageForm
 from client.models import Client, Mailing, Message, MailingLog
 
 
+@cache_page(60)
 def main_page(request):
     # Получаем данные из базы данных
     num_mailings = Mailing.objects.count()
-    num_active_mailings = Mailing.objects.filter(status='started').count()
+    num_active_mailings = Mailing.objects.filter(status='created').count()
     num_unique_clients = Client.objects.filter(mailing__isnull=False).distinct().count()
     random_articles = sample(list(Blogpost.objects.filter(is_published=True)), 3)
     # Выводим шаблон с полученными данными
@@ -28,27 +30,39 @@ def main_page(request):
     })
 
 
-def logs(request):
-    context = {
-        'object_list': MailingLog.objects.all(),
-        'title': 'Логи'
-    }
-    return render(request, 'logs.html', context)
+class LogListView(ListView):
+    model = MailingLog
+    template_name = 'client/logs.html'
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
+        return queryset
 
 
 class HomeView(ListView):
     model = Client
-    template_name = 'Client/home.html'
+    template_name = 'client/clients.html'
     extra_context = {
         'title': 'Клиенты'
     }
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
+        return queryset
 
 
 class ClientCreateView(LoginRequiredMixin, CreateView):
     model = Client
     form_class = ClientForm
     # fields = ('fullname', 'email', 'comment',)
-    success_url = reverse_lazy ('client:home')
+    success_url = reverse_lazy('client:clients')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 
 class ClientDetailView(DetailView):
@@ -59,12 +73,12 @@ class ClientDetailView(DetailView):
 class ClientUpdateView(LoginRequiredMixin, UpdateView):
     model = Client
     form_class = ClientForm
-    success_url = reverse_lazy('client:home')
+    success_url = reverse_lazy('client:clients')
 
 
 class ClientDeleteView(LoginRequiredMixin, DeleteView):
     model = Client
-    success_url = reverse_lazy('client:home')
+    success_url = reverse_lazy('client:clients')
 
 
 class MailingListView(ListView):
@@ -75,11 +89,25 @@ class MailingListView(ListView):
     }
     success_url = reverse_lazy('mailing:list')
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
+        return queryset
+
 
 class MailingCreateView(LoginRequiredMixin, CreateView):
-    model = Client
+    model = Mailing
     form_class = MailingForm
     success_url = reverse_lazy('client:mailing_list')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
 
 class MailingDetailView(DetailView):
@@ -91,6 +119,15 @@ class MailingUpdateView(LoginRequiredMixin, UpdateView):
     model = Mailing
     form_class = MailingForm
     success_url = reverse_lazy('client:mailing_list')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
 
 class MailingDeleteView(LoginRequiredMixin, DeleteView):
@@ -106,11 +143,20 @@ class MessageListView(ListView):
     }
     success_url = reverse_lazy('message:list')
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
+        return queryset
+
 
 class MessageCreateView(LoginRequiredMixin, CreateView):
     model = Message
     form_class = MessageForm
     success_url = reverse_lazy('client:message_list')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 
 class MessageDetailView(DetailView):

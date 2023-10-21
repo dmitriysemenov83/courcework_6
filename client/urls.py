@@ -5,12 +5,13 @@ from .apps import ClientConfig
 from .services import start_scheduler
 from .views import HomeView, ClientCreateView, ClientDetailView, ClientUpdateView, ClientDeleteView, MailingListView, \
     MailingCreateView, MailingDetailView, MailingUpdateView, MailingDeleteView, MessageListView, MessageCreateView, \
-    MessageUpdateView, MessageDetailView, MessageDeleteView
+    MessageUpdateView, MessageDetailView, MessageDeleteView, LogListView
 
 app_name = ClientConfig.name
 
 urlpatterns = [
-    path('', HomeView.as_view(), name='home'),
+    path('', views.main_page, name='main_page'),
+    path('clients/', HomeView.as_view(), name='clients'),
     path('create/', ClientCreateView.as_view(), name='client_create'),
     path('view/<int:pk>', ClientDetailView.as_view(), name='view'),
     path('update/<int:pk>', ClientUpdateView.as_view(), name='client_update'),
@@ -25,8 +26,8 @@ urlpatterns = [
     path('message_view/<int:pk>', MessageDetailView.as_view(), name='message_view'),
     path('message_update/<int:pk>', MessageUpdateView.as_view(), name='message_update'),
     path('message_delete/<int:pk>', MessageDeleteView.as_view(), name='message_delete'),
-    path('main_page/', views.main_page, name='main_page'),
+    path('logs_view/', LogListView.as_view(), name='log_view'),
 ]
 
 
-# start_scheduler()
+start_scheduler()
