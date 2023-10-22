@@ -19,7 +19,16 @@ def main_page(request):
     num_mailings = Mailing.objects.count()
     num_active_mailings = Mailing.objects.filter(status='created').count()
     num_unique_clients = Client.objects.filter(mailing__isnull=False).distinct().count()
-    random_articles = sample(list(Blogpost.objects.filter(is_published=True)), 3)
+
+    # Получаем список всех опубликованных статей блога
+    blogposts = Blogpost.objects.filter(is_published=True)
+
+    # Если в блоге есть три или более статей, выбираем три случайные статьи
+    if blogposts.count() >= 3:
+        random_articles = sample(list(blogposts), 3)
+    else:
+        random_articles = []
+
     # Выводим шаблон с полученными данными
     return render(request, 'client/main_page.html', {
         'num_mailings': num_mailings,
