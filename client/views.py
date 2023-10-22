@@ -1,6 +1,5 @@
 from random import sample
 
-from django.core.mail import send_mail
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.decorators.cache import cache_page
@@ -13,7 +12,7 @@ from client.forms import ClientForm, MailingForm, MessageForm
 from client.models import Client, Mailing, Message, MailingLog
 
 
-# @cache_page(60)
+@cache_page(60)
 def main_page(request):
     # Получаем данные из базы данных
     num_mailings = Mailing.objects.count()
@@ -24,7 +23,7 @@ def main_page(request):
     blogposts = Blogpost.objects.filter(is_published=True)
 
     # Если в блоге есть три или более статей, выбираем три случайные статьи
-    if blogposts.count() >= 3:
+    if blogposts.exists() and blogposts.count() >= 3:
         random_articles = sample(list(blogposts), 3)
     else:
         random_articles = []
