@@ -13,7 +13,7 @@ from client.forms import ClientForm, MailingForm, MessageForm
 from client.models import Client, Mailing, Message, MailingLog
 
 
-@cache_page(60)
+# @cache_page(60)
 def main_page(request):
     # Получаем данные из базы данных
     num_mailings = Mailing.objects.count()

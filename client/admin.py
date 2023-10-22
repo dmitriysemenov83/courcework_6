@@ -16,3 +16,4 @@ class ClientMailing(admin.ModelAdmin):
 @admin.register(Message)
 class ClientMessage(admin.ModelAdmin):
     list_display = ('title', 'content')
+
