@@ -25,7 +25,7 @@ class LogoutView(BaseLogoutView):
 class RegisterView(CreateView):
     model = User
     form_class = UserRegisterForm
-    success_url = reverse_lazy('client:home')
+    success_url = reverse_lazy('client:main_page')
     template_name = 'users/register.html'
 
     def form_valid(self, form):
@@ -54,7 +54,7 @@ class VerifyView(TemplateView):
             user.is_verified = True
             user.save()
             login(request, user)
-            return redirect('client:home')
+            return redirect('client:main_page')
         except User.DoesNotExist:
             return HttpResponseBadRequest('Invalid verification token')
 
