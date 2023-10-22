@@ -41,7 +41,7 @@ class LogListView(ListView):
         return queryset
 
 
-class HomeView(ListView):
+class HomeView(LoginRequiredMixin, ListView):
     model = Client
     template_name = 'client/clients.html'
     extra_context = {
@@ -81,7 +81,7 @@ class ClientDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('client:clients')
 
 
-class MailingListView(ListView):
+class MailingListView(LoginRequiredMixin, ListView):
     model = Mailing
     fields = ('time', 'period', 'status', 'clients')
     extra_context = {
@@ -135,7 +135,7 @@ class MailingDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('client:mailing_list')
 
 
-class MessageListView(ListView):
+class MessageListView(LoginRequiredMixin, ListView):
     model = Message
     fields = ('title', 'content')
     extra_context = {
