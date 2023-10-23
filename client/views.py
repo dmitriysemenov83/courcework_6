@@ -13,11 +13,9 @@ from client.models import Client, Mailing, Message, MailingLog
 from client.services import get_main_page_data
 
 
+# Как только логику вынес в сервисный файл, кеширование стало работать намного медленнее
 def main_page(request):
-    # Получаем данные из сервиса
     data = get_main_page_data()
-
-    # Выводим шаблон с полученными данными
     return render(request, 'client/main_page.html', data)
 
 
