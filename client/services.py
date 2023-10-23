@@ -20,10 +20,10 @@ def send_mailing(mailing):
         response = send_mail(subject, message, from_email, [recipient])
         if response == 1:
             status = 'success'
-            server_response = 'Письмо доставлено'
+            server_response = 'Ответ получен'
         else:
             status = 'error'
-            server_response = 'Message не доставлено'
+            server_response = 'Ответа нет'
 
         # Создаем новый объект журнала рассылки и сохраняем его в базу.
         mailing_log = MailingLog(date_time=timezone.now(), status=status, server_response=server_response,
