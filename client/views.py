@@ -19,7 +19,7 @@ def main_page(request):
     return render(request, 'client/main_page.html', data)
 
 
-class LogListView(ListView):
+class LogListView(LoginRequiredMixin, ListView):
     model = MailingLog
     template_name = 'client/logs.html'
     context_object_name = 'logs'

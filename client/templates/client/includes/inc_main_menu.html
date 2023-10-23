@@ -8,6 +8,7 @@
         <li><a href="{% url 'client:log_view' %}" class="text-white">Лог рассылки</a></li>
         <li><a href="{% url 'blogpost:blogpost_list' %}" class="text-white">Наш блог</a></li>
                 {% if user.is_authenticated %}
+            <li><a href="{% url 'users:user_view' %}" class="text-white">Пользователи</a></li>
             <li><a href="{% url 'users:profile' %}" class="text-white">Профиль</a></li>
             <li><a href="{% url 'users:logout' %}" class="text-white">Выход</a></li>
         {% else %}
