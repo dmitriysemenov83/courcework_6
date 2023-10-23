@@ -1,13 +1,17 @@
 from datetime import datetime
+from random import sample
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.core.mail import send_mail
 
-from client.models import Mailing, MailingLog
+from blogpost.models import Blogpost
+from client.models import Mailing, MailingLog, Client
 import datetime
 from django.utils import timezone
 
 from config.settings import EMAIL_HOST_USER
+
+from django.core.cache import cache
 
 
 def send_mailing(mailing):
@@ -40,14 +44,6 @@ def check_mailing():
         send_mailing(mailing)
         mailing.start_mailing()
 
-# def check_mailing():
-#     print(f'Время сейчас: {datetime.datetime.now().time()}')
-#     print(f'Дата сейчас: {datetime.datetime.now().date()}')
-#     now = datetime.datetime.now().time()
-#     mailings = Mailing.objects.filter(time__lte=now, next_run__gte=datetime.datetime.now().date())
-#     for mailing in mailings:
-#         send_mailing(mailing)
-
 
 def start_scheduler():
     scheduler = BackgroundScheduler()
@@ -55,12 +51,37 @@ def start_scheduler():
     scheduler.start()
 
 
-# def check_mailing():
-#     print(f'Время сейчас: {datetime.datetime.now().time()}')
-#     print(f'Дата сейчас: {datetime.datetime.now().date()}')
-#     now = datetime.datetime.now().time()
-#     mailings = Mailing.objects.filter(time__lte=now, next_run__gte=datetime.datetime.now().date())
-#     for mailing in mailings:
-#         clients = mailing.clients.all()
-#         for client in clients:
-#             print(client.email)
+def get_main_page_data():
+    # Получаем данные из кэша
+    cache_key = 'main_page_data'
+    cached_data = cache.get(cache_key)
+
+    if cached_data is not None:
+        # Если данные есть в кэше, возвращаем их
+        return cached_data
+    else:
+        # Если данных нет в кэше, получаем их из базы данных
+        num_mailings = Mailing.objects.count()
+        num_active_mailings = Mailing.objects.filter(status='created').count()
+        num_unique_clients = Client.objects.filter(mailing__isnull=False).distinct().count()
+
+        # Получаем список всех опубликованных статей блога
+        blogposts = Blogpost.objects.filter(is_published=True)
+
+        # Если в блоге есть три или более статей, выбираем три случайные статьи
+        if blogposts.exists() and blogposts.count() >= 3:
+            random_articles = sample(list(blogposts), 3)
+        else:
+            random_articles = []
+
+        # Сохраняем данные в кэше
+        data = {
+            'num_mailings': num_mailings,
+            'num_active_mailings': num_active_mailings,
+            'num_unique_clients': num_unique_clients,
+            'random_articles': random_articles,
+            'title': 'Главная страница'
+        }
+        cache.set(cache_key, data, 60)
+
+        return data

@@ -3,7 +3,6 @@ from random import sample
 from django.core.cache import cache
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.decorators.cache import cache_page
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,43 +10,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from blogpost.models import Blogpost
 from client.forms import ClientForm, MailingForm, MessageForm
 from client.models import Client, Mailing, Message, MailingLog
+from client.services import get_main_page_data
 
 
 def main_page(request):
-    # Получаем данные из кэша
-    cache_key = 'main_page_data'
-    cached_data = cache.get(cache_key)
+    # Получаем данные из сервиса
+    data = get_main_page_data()
 
-    if cached_data is not None:
-        # Если данные есть в кэше, возвращаем их
-        return cached_data
-    else:
-        # Если данных нет в кэше, получаем их из базы данных
-        num_mailings = Mailing.objects.count()
-        num_active_mailings = Mailing.objects.filter(status='created').count()
-        num_unique_clients = Client.objects.filter(mailing__isnull=False).distinct().count()
-
-        # Получаем список всех опубликованных статей блога
-        blogposts = Blogpost.objects.filter(is_published=True)
-
-        # Если в блоге есть три или более статей, выбираем три случайные статьи
-        if blogposts.exists() and blogposts.count() >= 3:
-            random_articles = sample(list(blogposts), 3)
-        else:
-            random_articles = []
-
-        # Сохраняем данные в кэше
-        data = render(request, 'client/main_page.html', {
-            'num_mailings': num_mailings,
-            'num_active_mailings': num_active_mailings,
-            'num_unique_clients': num_unique_clients,
-            'random_articles': random_articles,
-            'title': 'Главная страница'
-        })
-        cache.set(cache_key, data, 60)
-
-        # Возвращаем данные
-        return data
+    # Выводим шаблон с полученными данными
+    return render(request, 'client/main_page.html', data)
 
 
 class LogListView(ListView):
