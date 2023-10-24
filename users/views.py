@@ -97,7 +97,7 @@ class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     extra_context = {
         'title': 'Пользователи'
     }
-    success_url = reverse_lazy('users:user_view')
+    success_url = reverse_lazy('client:main_page')
 
     def test_func(self):
         return self.request.user.is_staff
